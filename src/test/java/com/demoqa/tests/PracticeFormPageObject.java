@@ -6,16 +6,15 @@ import com.demoqa.components.ResultComponent;
 import com.demoqa.components.TestBase;
 import org.junit.jupiter.api.Test;
 
+import static com.codeborne.selenide.Selenide.open;
+
 
 public class PracticeFormPageObject extends TestBase {
 
     @Test
     void checkingTheFillingOfAllFields() {
 
-        RegistrationPage registrationPage = new RegistrationPage();
-        ResultComponent resultComponent = new ResultComponent();
-
-        registrationPage.openPage()
+        open("https://demoqa.com/automation-practice-form", RegistrationPage.class)
                 .setFirstName("Иван")
                 .setLastName("Иванов")
                 .setUserEmail("pochta1234@gmail.com")
@@ -31,15 +30,18 @@ public class PracticeFormPageObject extends TestBase {
                 .setCity("D", "Delhi")
                 .submit();
 
-        resultComponent.responceTable("Thanks for submitting the form")
-                .resultTable("Иван Иванов")
-                .resultTable("pochta1234@gmail.com")
-                .resultTable("9103456523")
-                .resultTable("14 July,1996")
-                .resultTable("Maths, Computer Science")
-                .resultTable("Sports")
-                .resultTable("Дикпик.png")
-                .resultTable("Random address")
-                .resultTable("NCR Delhi");
+        // Каждая проверка привязана к своей строке таблицы:
+        // сначала находим строку по подписи слева, потом сверяем значение справа
+        new ResultComponent().responseTable("Thanks for submitting the form")
+                .checkStudentName("Иван", "Иванов")
+                .checkStudentEmail("pochta1234@gmail.com")
+                .checkGender("Other")
+                .checkMobile("9103456523")
+                .checkDateOfBirth("14", "July", "1996")
+                .checkSubjects("Maths", "Computer Science")
+                .checkHobbies("Sports")
+                .checkPicture("Дикпик.png")
+                .checkAddress("Random address")
+                .checkStateAndCity("NCR", "Delhi");
     }
 }
