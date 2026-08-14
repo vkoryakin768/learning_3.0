@@ -4,19 +4,21 @@ import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 
 
+import java.util.Locale;
+
 import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.Selenide.*;
 
 
 public class ComputersPage {
 
-    public static ElementsCollection productGrid = $$("div.product-grid div");
-    public static SelenideElement itemName = $("[itemprop=name]");
-    public static SelenideElement itemPrice = $("[itemprop=price]");
-    public static ElementsCollection selectOption = $$("dl dd ul");
-    public static SelenideElement inputQty = $("input.qty-input");
-    public static SelenideElement addButton = $("input.add-to-cart-button");
-    public static SelenideElement barNotification = $("div.bar-notification.success");
+    private final ElementsCollection productGrid = $$("div.product-grid div");
+    private final SelenideElement itemName = $("[itemprop=name]");
+    private final SelenideElement itemPrice = $("[itemprop=price]");
+    private final ElementsCollection selectOption = $$("dl dd ul");
+    private final SelenideElement inputQty = $("input.qty-input");
+    private final SelenideElement addButton = $("input.add-to-cart-button");
+    private final SelenideElement barNotification = $("div.bar-notification.success");
 
     public ComputersPage selectionItem() {
         productGrid.get(0).click();
@@ -29,6 +31,30 @@ public class ComputersPage {
 
     public String getItemPrice() {
         return itemPrice.getText();
+    }
+
+    public String getProcessorSurcharge(int listIndex, int optionIndex) {
+        String label = selectOption.get(listIndex).$$("li label").get(optionIndex).getText().trim();
+
+
+        if (label.contains("[") && label.contains("]")) {
+
+            String surcharge = label.replaceAll(".*\\[(.*)\\].*", "$1");
+
+            return surcharge.replace("+", "");
+        }
+
+
+        return "0";
+    }
+
+    public String calculateTotalPrice(int processorListIndex, int processorOptionIndex) {
+        String basePrice = getItemPrice();
+        String surcharge = getProcessorSurcharge(processorListIndex, processorOptionIndex);
+
+        float totalPrice = Float.parseFloat(basePrice) + Float.parseFloat(surcharge);
+
+        return String.format(Locale.US, "%.2f", totalPrice);
     }
 
     public ComputersPage selectProcessor(int listIndex, int optionIndex) {

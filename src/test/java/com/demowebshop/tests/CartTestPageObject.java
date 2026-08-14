@@ -16,7 +16,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class CartTestPageObject {
 
-    private static final Faker faker = new Faker();
+
     private final AuthSteps authSteps = new AuthSteps();
     CartPage cartPage = new CartPage();
 
@@ -34,10 +34,13 @@ public class CartTestPageObject {
 
         String itemName = computersPage.getItemName();
         String itemQuantity = "2";
+        int processorListIndex = 0;
+        int processorOptionIndex = 1;
 
+        String calculatedPrice = computersPage.calculateTotalPrice(processorListIndex, processorOptionIndex);
 
-        computersPage.selectProcessor(0, 1)
-        .inputQantity(itemQuantity)
+        computersPage.selectProcessor(processorListIndex, processorOptionIndex)
+                .inputQantity(itemQuantity)
                 .addToCartButton()
                 .dispayBarNotification()
                 .verifyCartQuantity(itemQuantity)
@@ -47,10 +50,11 @@ public class CartTestPageObject {
         String itemQuantityInCart = cartPage.getQuantityValue();
         assertEquals(itemQuantity, itemQuantityInCart);
 
+
         String unitPrice = cartPage.getUnitPrice();
+        assertEquals(calculatedPrice, unitPrice);
+
 
         cartPage.verifyProductSubtotal(unitPrice, itemQuantity);
-
-
     }
 }

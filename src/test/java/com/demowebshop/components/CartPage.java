@@ -9,12 +9,12 @@ import static com.codeborne.selenide.Selenide.$;
 
 public class CartPage {
 
-    public static SelenideElement cartQuantityBadge = $("span.cart-qty");
-    public static SelenideElement cartIcon = $("a.ico-cart");
-    public static SelenideElement productName = $("a.product-name");
-    public static SelenideElement quantityInput = $("input.qty-input");
-    public static SelenideElement productSubtotal = $("span.product-subtotal");
-    public static SelenideElement productUnitPrice = $("span.product-unit-price");
+    private final SelenideElement cartQuantityBadge = $("span.cart-qty");
+    private final SelenideElement cartIcon = $("a.ico-cart");
+    private final SelenideElement productName = $("a.product-name");
+    private final SelenideElement quantityInput = $("input.qty-input");
+    private final SelenideElement productSubtotal = $("span.product-subtotal");
+    private final SelenideElement productUnitPrice = $("span.product-unit-price");
 
     public CartPage verifyCartQuantity(String itemQuantity) {
         cartQuantityBadge.shouldHave(text("(" + itemQuantity + ")"));

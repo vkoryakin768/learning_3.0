@@ -10,10 +10,10 @@ import static com.codeborne.selenide.Selenide.$$;
 
 public class WsWelcomePage {
 
-    public static SelenideElement registerButton = $("a.ico-register");
-    public static SelenideElement loginButton = $("a.ico-login");
-    public static ElementsCollection headerLinks = $$("div.header-links ul li a");
-    public static ElementsCollection topMenu = $$("ul.top-menu li a");
+    private final SelenideElement registerButton = $("a.ico-register");
+    private final SelenideElement loginButton = $("a.ico-login");
+    private final ElementsCollection headerLinks = $$("div.header-links ul li a");
+    private final ElementsCollection topMenu = $$("ul.top-menu li a");
 
     public WsRegistrationPage openRegistraion(){
         registerButton.click();

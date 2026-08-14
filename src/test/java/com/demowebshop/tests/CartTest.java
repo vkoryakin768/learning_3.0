@@ -1,9 +1,8 @@
 package com.demowebshop.tests;
 
-import com.codeborne.selenide.Configuration;
-import com.demowebshop.components.WsRegistrationPage;
+
 import com.demowebshop.steps.AuthSteps;
-import net.datafaker.Faker;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -17,7 +16,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class CartTest {
 
-    private static final Faker faker = new Faker();
+
     private final AuthSteps authSteps = new AuthSteps();
 
     @BeforeEach
