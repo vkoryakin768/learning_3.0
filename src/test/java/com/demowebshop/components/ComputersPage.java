@@ -2,6 +2,7 @@ package com.demowebshop.components;
 
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
+import io.qameta.allure.Step;
 
 
 import java.util.Locale;
@@ -20,15 +21,18 @@ public class ComputersPage {
     private final SelenideElement addButton = $("input.add-to-cart-button");
     private final SelenideElement barNotification = $("div.bar-notification.success");
 
+    @Step("Выбор товара")
     public ComputersPage selectionItem() {
         productGrid.get(0).click();
         return this;
     }
 
+    @Step("Получаем наименование товара")
     public String getItemName() {
         return itemName.getText();
     }
 
+    @Step("Получаем цену товара")
     public String getItemPrice() {
         return itemPrice.getText();
     }
@@ -48,6 +52,7 @@ public class ComputersPage {
         return "0";
     }
 
+    @Step("Считаем итоговую цену товара")
     public String calculateTotalPrice(int processorListIndex, int processorOptionIndex) {
         String basePrice = getItemPrice();
         String surcharge = getProcessorSurcharge(processorListIndex, processorOptionIndex);
@@ -57,22 +62,26 @@ public class ComputersPage {
         return String.format(Locale.US, "%.2f", totalPrice);
     }
 
+    @Step("Выбор процессора из списка {listIndex}, вариант {optionIndex}")
     public ComputersPage selectProcessor(int listIndex, int optionIndex) {
         selectOption.get(listIndex).$$("li input").get(optionIndex).click();
 
         return this;
     }
 
+    @Step("Ввести количество товара: {itemQuantity}")
     public ComputersPage inputQantity(String itemQuantity) {
         inputQty.setValue(itemQuantity);
         return this;
     }
 
+    @Step("Добавляем товар в корзину")
     public ComputersPage addToCartButton() {
         addButton.click();
         return this;
     }
 
+    @Step("Проверям отображения баннера об успешном добавлении товара в корзину")
     public CartPage dispayBarNotification() {
         barNotification.shouldBe(visible);
         return new CartPage();
