@@ -7,6 +7,7 @@ import io.qameta.allure.*;
 import net.datafaker.Faker;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Tags;
 import org.junit.jupiter.api.Test;
 
 
@@ -21,7 +22,7 @@ public class RegistrationTest extends TestBase {
 
     @Test
     @Owner("v.koriakin")
-    @Tag("positive")
+    @Tags({@Tag("UI"), @Tag("positive")})
     @Severity(CRITICAL)
     @Epic("Авторизация")
     @Feature("Регистрация")
@@ -53,7 +54,7 @@ public class RegistrationTest extends TestBase {
 
     @Test
     @Owner("v.koriakin")
-    @Tag("negative")
+    @Tags({@Tag("UI"), @Tag("negative")})
     @Severity(CRITICAL)
     @Epic("Авторизация")
     @Feature("Регистрация")
