@@ -4,6 +4,7 @@ package com.demowebshop.tests;
 import com.demowebshop.steps.AuthSteps;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import static com.codeborne.selenide.Condition.text;
