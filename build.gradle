@@ -2,18 +2,134 @@ plugins {
     id 'java'
 }
 
-
+/*
+ * Отчёт Allure собирается системным CLI, а не плагином io.qameta.allure.
+ *
+ * Почему плагин убран: начиная с версии 4.x задача allureServe требует
+ * установки Allure 3 через npm, но плагин запускает npm, не добавляя
+ * собственный каталог со скачанным Node.js в PATH. npm — это скрипт с
+ * шебангом "#!/usr/bin/env node", поэтому он не находит node и завершается
+ * кодом 127:
+ *   Execution failed for task ':installAllure3'.
+ *   > Process '.../build/allure/node/bin/npm' finished with non-zero exit value 127
+ *
+ * Адаптеры Allure выровнены на 2.35.5 — ту же мажорную ветку, что и
+ * установленный CLI Allure 2.x (проверьте: allure --version).
+ * Плетение @Step выполняется явным javaagent'ом AspectJ, как это делал плагин.
+ */
+def allureVersion = "2.35.5"
 
 repositories {
     mavenCentral()
 }
 
 dependencies {
+    testImplementation("io.qameta.allure:allure-jupiter:$allureVersion")
+    testImplementation("io.qameta.allure:allure-selenide:$allureVersion")
     testImplementation("org.junit.jupiter:junit-jupiter:5.11.4")
     testImplementation("com.codeborne:selenide:7.16.2")
     testImplementation("net.datafaker:datafaker:2.7.0")
+    // Без этого Gradle 8 не запускает тесты на JUnit Platform.
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    // Плетение @Step во время выполнения (аналог allure.adapter.aspectjWeaver).
+    testImplementation("org.aspectj:aspectjweaver:1.9.25.1")
 }
 
 test {
     useJUnitPlatform()
+
+    // Шаги Allure, события тестов и вывод Selenide печатаются в консоль прогона.
+    // Отключить: ./gradlew test -PshowSteps=false
+    if (providers.gradleProperty('showSteps').getOrElse('true') != 'false') {
+        testLogging {
+            events 'started', 'passed', 'failed', 'skipped'
+            exceptionFormat = 'full'
+            showStandardStreams = true
+            showExceptions = true
+            showCauses = true
+        }
+    }
+
+    doFirst {
+        // javaagent должен стоять до тестовых аргументов, поэтому собираем список сами.
+        def aspectjWeaver = classpath.find { it.name.startsWith('aspectjweaver') }
+        if (aspectjWeaver != null) {
+            jvmArgs = ["-javaagent:${aspectjWeaver.absolutePath}"] + (jvmArgs ?: [])
+        }
+    }
+}
+
+/*
+ * ВАЖНО: адаптер Allure 2.x пишет результаты в allure-results/ в корне проекта,
+ * а не в build/allure-results. Задачи отчёта должны смотреть именно туда,
+ * иначе отчёт собирается пустым.
+ * Путь можно переопределить: ./gradlew test -Dallure.results.directory=...
+ */
+def allureResultsDir = layout.projectDirectory.dir('allure-results')
+def allureReportDir = layout.buildDirectory.dir('reports/allure-report')
+
+/*
+ * Отчёт собирает системный CLI Allure — npm и Node.js не нужны.
+ * Если allure не в PATH, путь задаётся одним из способов:
+ *   ./gradlew allureReport -PallureExecutable=/полный/путь/к/allure
+ *   ALLURE_EXECUTABLE=/полный/путь/к/allure ./gradlew allureReport
+ */
+def allureExecutable = providers.gradleProperty('allureExecutable')
+        .orElse(providers.environmentVariable('ALLURE_EXECUTABLE'))
+        .orElse('allure')
+
+/** Ищет команду в PATH и возвращает абсолютный путь, либо null. */
+def findOnPath = { String command ->
+    if (command.contains('/')) {
+        return null
+    }
+    return System.getenv('PATH')
+            ?.split(File.pathSeparator)
+            ?.collect { new File(it, command) }
+            ?.find { it.canExecute() }
+}
+
+/** Возвращает проверенный путь к исполняемому файлу Allure или падает с понятным текстом. */
+def resolveAllureExecutable = { String configured, String taskName ->
+    def fromPath = findOnPath(configured)
+    def executable = fromPath ?: new File(configured)
+    if (!executable.canExecute()) {
+        throw new GradleException(
+                "Не найден исполняемый файл Allure CLI ('${configured}').\n" +
+                        "Установите Allure (например: brew install allure) или передайте путь:\n" +
+                        "  ./gradlew ${taskName} -PallureExecutable=/полный/путь/к/allure")
+    }
+    return executable.absolutePath
+}
+
+tasks.register('allureReport', Exec) {
+    group = 'allure'
+    description = 'Собирает отчёт Allure системным CLI (без npm и Node.js).'
+
+    inputs.dir(allureResultsDir)
+    // Без этого смена -PallureExecutable не инвалидировала бы задачу.
+    inputs.property('allureExecutable', allureExecutable)
+    outputs.dir(allureReportDir)
+
+    doFirst {
+        // --clean обязателен: без него CLI Allure 2 отказывается перезаписывать
+        // уже существующий каталог отчёта ("Target directory ... is already in use").
+        commandLine resolveAllureExecutable(allureExecutable.get(), 'allureReport'),
+                'generate', allureResultsDir.asFile.absolutePath,
+                '-o', allureReportDir.get().asFile.absolutePath,
+                '--clean'
+    }
+}
+
+tasks.register('allureServe', Exec) {
+    group = 'allure'
+    description = 'Собирает отчёт и поднимает локальный сервер Allure для просмотра.'
+    dependsOn tasks.named('allureReport')
+
+    inputs.property('allureExecutable', allureExecutable)
+
+    doFirst {
+        commandLine resolveAllureExecutable(allureExecutable.get(), 'allureServe'),
+                'serve', allureResultsDir.asFile.absolutePath
+    }
 }
