@@ -61,6 +61,31 @@ test {
     }
 }
 
+task uiTest(type: Test) {
+    useJUnitPlatform {
+        def tag = System.getProperty("tag")
+        //если тег указан - запускаем ui + тег тест
+        //если нет, то только ui
+        if (tag != null && !tag.isBlank()) {
+            includeTags("UI & ${tag}")
+        } else
+            includeTags("UI")
+    }
+    systemProperties(System.getProperties())
+}
+task apiTest(type: Test) {
+    useJUnitPlatform {
+        def tag = System.getProperty("tag")
+        //если тег указан - запускаем api + тег тест
+        //если нет, то только api
+        if (tag != null && !tag.isBlank()) {
+            includeTags("API & ${tag}")
+        } else
+            includeTags("API")
+    }
+    systemProperties(System.getProperties())
+}
+
 /*
  * ВАЖНО: адаптер Allure 2.x пишет результаты в allure-results/ в корне проекта,
  * а не в build/allure-results. Задачи отчёта должны смотреть именно туда,
