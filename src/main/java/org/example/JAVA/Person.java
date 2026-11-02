@@ -6,11 +6,10 @@ public class Person {
     String lastName;
     int age;
 
-
-    public Person(String firstName, String lastName, int age) {
-        this.firstName = firstName;
-        this.lastName = lastName;
+    public Person(int age, String lastName, String firstName) {
         this.age = age;
+        this.lastName = lastName;
+        this.firstName = firstName;
     }
 
     public void introduce() {
